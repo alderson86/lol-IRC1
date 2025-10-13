@@ -1,635 +1,188 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>lol-IRC</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>lol-IRC - Mensageiro Anônimo</title>
   <style>
-    /* clean UI */
-    :root{
-      --accent: #007aff;
-      --bg: #f2f2f7;
-      --panel: #ffffff;
-      --muted: #8e8e93;
-      --bubble-me: var(--accent);
-      --bubble-other: #e5e5ea;
-      --text-dark: #1c1c1e;
+    body {
+      margin: 0;
+      font-family: Segoe UI, Roboto, Arial;
+      background: #07172a;
+      color: #e6eef8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: linear-gradient(180deg, #f2f2f7 0%, #e5e5ea 100%);
-      color: var(--text-dark);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      height:100vh;
+    .chat-container {
+      width: 90%;
+      max-width: 900px;
+      background: rgba(11, 18, 32, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 30px rgba(2, 6, 23, 0.6);
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
     }
-
-    .chat-container{
-      width:95%;
-      max-width:900px;
-      height:90vh;
-      background:var(--panel);
-      border-radius:22px;
-      box-shadow:0 12px 40px rgba(0,0,0,0.08);
-      display:flex;
-      flex-direction:column;
-      overflow:hidden;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
     }
-
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:16px 18px;
-      background: #fbfbfd;
-      border-bottom:1px solid #e9e9ee;
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.25);
+      margin-bottom: 12px;
     }
-    header .title{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
+    .msg {
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      max-width: 80%;
+      word-wrap: break-word;
     }
-    header h2{
-      margin:0;
-      font-size:18px;
-      color:var(--accent);
-      font-weight:600;
-      letter-spacing:0.2px;
+    .me {
+      background: rgba(96, 165, 250, 0.12);
+      align-self: flex-end;
     }
-    .muted{font-size:13px;color:var(--muted)}
-
-    .controls{display:flex;align-items:center;gap:8px}
-    .nick{
-      font-size:14px;
-      background:var(--accent);
-      color:#fff;
-      padding:6px 10px;
-      border-radius:12px;
-      box-shadow:0 4px 10px rgba(0,122,255,0.18);
-      display:flex;
-      align-items:center;
-      gap:8px;
+    .other {
+      background: rgba(255, 255, 255, 0.05);
+      align-self: flex-start;
     }
-    .fingerprint{font-size:11px;color:rgba(255,255,255,0.85);opacity:0.9}
-
-    .small{
-      font-size:13px;
-      padding:8px 10px;
-      border-radius:10px;
-      background:transparent;
-      border:1px solid rgba(0,0,0,0.04);
-      color:var(--muted);
-      cursor:pointer;
+    .meta {
+      font-size: 12px;
+      color: #9aa4b2;
+      margin-bottom: 4px;
     }
-
-    #messages{
-      flex:1;
-      padding:18px;
-      background:var(--bg);
-      overflow-y:auto;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+    footer {
+      display: flex;
+      gap: 8px;
     }
-
-    .msg{
-      max-width:74%;
-      padding:10px 14px;
-      border-radius:16px;
-      word-wrap:break-word;
-      box-shadow:0 6px 18px rgba(0,0,0,0.04);
-      animation:fadeIn .12s ease;
+    input[type=text] {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: transparent;
+      color: inherit;
     }
-    .me{
-      background:var(--bubble-me);
-      color:#fff;
-      align-self:flex-end;
-      border-bottom-right-radius:6px;
+    button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 0;
+      background: #60a5fa;
+      color: #04263a;
+      font-weight: 600;
+      cursor: pointer;
     }
-    .other{
-      background:var(--bubble-other);
-      color:var(--text-dark);
-      align-self:flex-start;
-      border-bottom-left-radius:6px;
+    .nick {
+      background: rgba(255,255,255,0.03);
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 13px;
     }
-    .meta{
-      font-size:11px;
-      color:var(--muted);
-      margin-bottom:6px;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-
-    .private-tag{
-      font-size:11px;
-      background:#facc15;
-      color:#000;
-      padding:3px 8px;
-      border-radius:10px;
-    }
-
-    footer{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding:12px;
-      background:#fbfbfd;
-      border-top:1px solid #e9e9ee;
-    }
-
-    .attach-btn{
-      width:42px;height:42px;border-radius:12px;border:0;background:transparent;font-size:20px;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 6px 18px rgba(0,0,0,0.03);
-    }
-
-    input[type=text]{
-      flex:1;
-      padding:12px 14px;
-      border-radius:18px;
-      border:1px solid #e1e1e6;
-      background:#fff;
-      font-size:15px;
-      color:var(--text-dark);
-      outline:none;
-    }
-    input[type=text]:focus{box-shadow:0 0 0 4px rgba(0,122,255,0.08);border-color:var(--accent)}
-    .send-btn{
-      background:var(--accent);
-      color:#fff;
-      border:0;
-      padding:10px 14px;
-      border-radius:18px;
-      font-weight:600;
-      cursor:pointer;
-      box-shadow:0 8px 18px rgba(0,122,255,0.14);
-    }
-
-    img.preview{max-width:260px;border-radius:12px;display:block}
-    video.preview{max-width:320px;border-radius:12px}
-    audio.preview{width:220px;display:block}
-
-    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-    /* responsiveness */
-    @media (max-width:520px){
-      .nick{font-size:13px;padding:5px 8px}
-      header h2{font-size:16px}
-      .msg{max-width:86%}
-      .attach-btn{width:38px;height:38px}
-      img.preview{max-width:180px}
-      video.preview{max-width:220px}
+    .muted {
+      color: #9aa4b2;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
   <div class="chat-container">
     <header>
-      <div class="title">
+      <div>
         <h2>lol-IRC</h2>
-        <div class="muted">Anonymous</div>
+        <div class="muted">Mensageiro anônimo estilo IRC</div>
       </div>
-      <div class="controls">
-        <div class="nick" id="nickDisplay">...</div>
-        <button id="editNick" class="small" title="Editar nickname">✏️</button>
-        <button id="logout" class="small" title="Sair (limpar dados)">Sair</button>
-      </div>
+      <div class="nick" id="nick">...</div>
     </header>
 
     <div id="messages" aria-live="polite"></div>
 
     <footer>
-      <input id="texto" type="text" placeholder="Digite sua mensagem" />
-      <button id="send" class="send-btn">Enviar</button>
+      <input id="texto" type="text" placeholder="Digite sua mensagem e pressione Enter" />
+      <button id="send">Enviar</button>
     </footer>
   </div>
 
-  <!-- Firebase compat -->
+  <!-- Firebase compatível com Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
   <script>
-  /*****************************************
-   *  Config Firebase (mantive seu config)
-   *****************************************/
-  const firebaseConfig = {
-    apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
-    authDomain: "lol-irc1.firebaseapp.com",
-    databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com",
-    projectId: "lol-irc1",
-    storageBucket: "lol-irc1.firebasestorage.app",
-    messagingSenderId: "947292658625",
-    appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const storage = firebase.storage();
+    // ===== CONFIGURAÇÃO FIREBASE =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
+      authDomain: "lol-irc1.firebaseapp.com",
+      databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com", // 🔥 IMPORTANTE
+      projectId: "lol-irc1",
+      storageBucket: "lol-irc1.firebasestorage.app",
+      messagingSenderId: "947292658625",
+      appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
+    };
 
-  /*****************************************
-   *  Utilitários (base64 <-> ArrayBuffer)
-   *****************************************/
-  function ab2b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
-  function b642ab(b64){ const bin=atob(b64); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return arr.buffer; }
-  function str2ab(str){ return new TextEncoder().encode(str); }
-  function ab2str(buf){ return new TextDecoder().decode(buf); }
-  async function sha256Hex(bufOrB64){ const data = (typeof bufOrB64 === 'string') ? b642ab(bufOrB64) : bufOrB64; const h = await crypto.subtle.digest('SHA-256', data); return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+    // Inicializa Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  /*****************************************
-   *  Identidade local (clientId, nick, sexo)
-   *****************************************/
-  let clientId = localStorage.getItem('clientId');
-  if(!clientId){ clientId = 'u_'+Math.random().toString(36).slice(2,10); localStorage.setItem('clientId', clientId); }
+    // Gera nickname aleatório persistente
+    function randomNick() {
+      const animals = ["lobo","falcao","pantera","raposa","corvo","tigre","orca","golfinho","gato","guerreiro","ninja","saturno","zeus","ares","odin","raio"];
+      return animals[Math.floor(Math.random() * animals.length)] + Math.floor(Math.random() * 9000 + 1000);
+    }
 
-  let nick = localStorage.getItem('anon_nick');
-  let sexo = localStorage.getItem('anon_sex');
-
-  if(!nick || !sexo){
-    nick = prompt('Escolha seu nickname:', 'anônimo'+Math.floor(Math.random()*9000)) || ('anônimo'+Math.floor(Math.random()*9000));
-    sexo = (prompt('Sexo (M/F):','M')||'M').toUpperCase() === 'F' ? 'F' : 'M';
+    const nick = localStorage.getItem('anon_nick') || randomNick();
     localStorage.setItem('anon_nick', nick);
-    localStorage.setItem('anon_sex', sexo);
-  }
+    document.getElementById('nick').innerText = nick;
 
-  const nickDisplay = document.getElementById('nickDisplay');
-  const messagesEl = document.getElementById('messages');
-  const input = document.getElementById('texto');
-  const sendBtn = document.getElementById('send');
-  const editBtn = document.getElementById('editNick');
-  const logoutBtn = document.getElementById('logout');
-  const attachBtn = document.getElementById('attachBtn');
+    // Sala fixa (todos compartilham)
+    const room = "default";
+    const messagesRef = db.ref('rooms/' + room + '/messages');
 
-  function renderNickDisplay(fingerprintHex){
-    nickDisplay.innerHTML = `${nick} (${sexo==="M"?"♂":"♀"})` + (fingerprintHex?` <span class="fingerprint">fp:${fingerprintHex.slice(0,8)}</span>`:'');
-  }
-
-  /*****************************************
-   *  E2EE keys (ECDH P-256) stored localStorage
-   *****************************************/
-  let ecdhKeyPair = null;
-  async function ensureKeyPair(){
-    const privB64 = localStorage.getItem('ecdh_priv_b64');
-    const pubB64 = localStorage.getItem('ecdh_pub_b64');
-    if(privB64 && pubB64){
-      try{
-        const privKey = await crypto.subtle.importKey('pkcs8', b642ab(privB64), {name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey']);
-        const pubKey = await crypto.subtle.importKey('spki', b642ab(pubB64), {name:'ECDH', namedCurve:'P-256'}, true, []);
-        ecdhKeyPair = { privateKey: privKey, publicKey: pubKey };
-        return;
-      }catch(e){
-        console.warn('falha importar chaves; gerando novas', e);
-      }
-    }
-    const kp = await crypto.subtle.generateKey({name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey']);
-    const privRaw = await crypto.subtle.exportKey('pkcs8', kp.privateKey);
-    const pubRaw = await crypto.subtle.exportKey('spki', kp.publicKey);
-    localStorage.setItem('ecdh_priv_b64', ab2b64(privRaw));
-    localStorage.setItem('ecdh_pub_b64', ab2b64(pubRaw));
-    ecdhKeyPair = kp;
-  }
-
-  async function publishProfile(){
-    const pubB64 = localStorage.getItem('ecdh_pub_b64');
-    if(!pubB64) return;
-    const fingerprint = await sha256Hex(b642ab(pubB64));
-    await db.ref('users/' + clientId).set({ nick, sexo, pub: pubB64, lastSeen: Date.now(), fingerprint });
-    renderNickDisplay(fingerprint);
-  }
-
-  /*****************************************
-   *  Users map
-   *****************************************/
-  const usersMap = {};
-  const nickToId = {};
-  const usersRef = db.ref('users');
-  usersRef.on('value', snap => {
-    const val = snap.val() || {};
-    Object.keys(val).forEach(k => { usersMap[k] = val[k]; if(val[k].nick) nickToId[val[k].nick] = k; });
-  });
-
-  /*****************************************
-   *  Crypto helpers (derive AES key, encrypt, decrypt)
-   *****************************************/
-  async function importPubKeyFromB64(spkiB64){ return crypto.subtle.importKey('spki', b642ab(spkiB64), {name:'ECDH', namedCurve:'P-256'}, true, []); }
-  async function deriveAESKey(privateKey, recipientPubKey){
-    return crypto.subtle.deriveKey({name:'ECDH', public: recipientPubKey}, privateKey, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
-  }
-  async function encryptWithAESGCM(key, plaintextBuf){
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, plaintextBuf);
-    return { iv: ab2b64(iv.buffer), ct: ab2b64(ct) };
-  }
-  async function decryptWithAESGCM(key, ivB64, ctB64){
-    const ivBuf = b642ab(ivB64);
-    const ctBuf = b642ab(ctB64);
-    const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv: new Uint8Array(ivBuf)}, key, ctBuf);
-    return plain;
-  }
-
-  /*****************************************
-   *  Chat core (room, messages)
-   *****************************************/
-  const room = "default";
-  const messagesRef = db.ref('rooms/' + room + '/messages');
-  let privateTo = null; // clientId destinatário quando modo privado
-
-  async function send(){
-    const text = input.value.trim();
-    if(!text && !pendingFile) return;
-    // if private mode and there's a pending file, handled separately
-    if(!privateTo && !pendingFile){
-      await messagesRef.push({ senderId:clientId, nick, sexo, text, ts:Date.now(), privateTo: null });
-      input.value='';
-      return;
-    }
-
-    if(pendingFile){
-      // handled by file upload flow (so do nothing here)
-      return;
-    }
-
-    // private text message -> E2EE
-    const dest = usersMap[privateTo];
-    if(!dest || !dest.pub){ alert('Chave pública do destinatário indisponível.'); return; }
-    const recipientPub = await importPubKeyFromB64(dest.pub);
-    const aesKey = await deriveAESKey(ecdhKeyPair.privateKey, recipientPub);
-    const enc = await encryptWithAESGCM(aesKey, str2ab(text));
-    await messagesRef.push({ senderId:clientId, nick, sexo, text: enc.ct, iv: enc.iv, ts:Date.now(), privateTo: privateTo });
-    // show local plaintext
-    appendMessage({ senderId:clientId, nick, sexo, text, ts:Date.now(), privateTo: privateTo, localPlain:true });
-    input.value='';
-    clearPrivateMode();
-  }
-
-  // messages listener
-  messagesRef.limitToLast(300).on('child_added', async snap => {
-    const m = snap.val();
-    if(m.privateTo && m.privateTo !== clientId && m.senderId !== clientId) return;
-
-    // file handling
-    if(m.file){
-      // encryption-aware file handling done in file listener below (we'll call appendMessageWithFile there)
-      // but include fallback
-      appendMessage(m);
-      return;
-    }
-
-    if(m.privateTo){
-      if(m.privateTo === clientId){
-        // private to me: decrypt
-        const senderId = m.senderId;
-        const senderProfile = usersMap[senderId];
-        if(!senderProfile || !senderProfile.pub){
-          appendMessage({ senderId, nick: m.nick || 'desconhecido', sexo: m.sexo, text: '[mensagem privada - chave do remetente indisponível]', ts: m.ts });
-          return;
-        }
-        try{
-          const senderPub = await importPubKeyFromB64(senderProfile.pub);
-          const aesKey = await deriveAESKey(ecdhKeyPair.privateKey, senderPub);
-          const plainBuf = await decryptWithAESGCM(aesKey, m.iv, m.text);
-          const plainText = ab2str(plainBuf);
-          appendMessage({ senderId, nick: m.nick, sexo: m.sexo, text: plainText, ts: m.ts, isPrivate:true });
-        }catch(e){
-          console.error('decipher fail', e);
-          appendMessage({ senderId, nick: m.nick, sexo: m.sexo, text: '[falha ao decifrar privada]', ts: m.ts });
-        }
-      } else if(m.senderId === clientId){
-        // you are sender: already shown localPlain earlier, ignore duplicate
-      }
-      return;
-    }
-
-    // public message
-    appendMessage(m);
-  });
-
-  /*****************************************
-   *  UI appendMessage
-   *****************************************/
-  function appendMessage(m){
-    const isMe = m.senderId === clientId;
-    const div = document.createElement('div');
-    div.className = 'msg ' + (isMe ? 'me' : 'other');
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    const timeStr = m.ts ? new Date(m.ts).toLocaleTimeString() : '';
-    meta.textContent = `${m.nick || 'anon'}${m.privateTo ? ' • privado':''} • ${timeStr}`;
-    meta.addEventListener('click', () => {
-      if(m.senderId && m.senderId !== clientId){
-        setPrivateMode(m.senderId, m.nick);
-      }
+    // Escuta novas mensagens
+    messagesRef.limitToLast(200).on('child_added', snapshot => {
+      appendMessage(snapshot.val());
     });
-    const body = document.createElement('div');
-    body.textContent = m.localPlain ? m.text : m.text;
-    if(m.isPrivate){
-      const badge = document.createElement('span');
-      badge.className = 'private-tag';
-      badge.textContent = 'Privado';
-      meta.appendChild(badge);
+
+    // Envia mensagem
+    const input = document.getElementById('texto');
+    const sendBtn = document.getElementById('send');
+
+    function send() {
+      const text = input.value.trim();
+      if (!text) return;
+      messagesRef.push({ nick, text, ts: Date.now() });
+      input.value = '';
     }
-    div.appendChild(meta);
-    div.appendChild(body);
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
 
-  /*****************************************
-   *  Private mode helpers
-   *****************************************/
-  function setPrivateMode(destClientId, destNick){
-    privateTo = destClientId;
-    clearPrivateMode();
-    const tag = document.createElement('span');
-    tag.className = 'private-tag';
-    tag.id = 'privateBadge';
-    tag.textContent = 'Privado com ' + destNick;
-    document.querySelector('header .controls').appendChild(tag);
-  }
-  function clearPrivateMode(){
-    privateTo = null;
-    const ex = document.getElementById('privateBadge');
-    if(ex) ex.remove();
-  }
+    sendBtn.addEventListener('click', send);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 
-  /*****************************************
-   *  Edit nick / logout
-   *****************************************/
-  editBtn.addEventListener('click', async () => {
-    const novo = prompt('Novo nickname:', nick) || nick;
-    const novoSexo = (prompt('Sexo (M/F):', sexo) || sexo).toUpperCase() === 'F' ? 'F' : 'M';
-    nick = novo; sexo = novoSexo;
-    localStorage.setItem('anon_nick', nick);
-    localStorage.setItem('anon_sex', sexo);
-    await publishProfile();
-    alert('Nickname atualizado.');
-  });
-
-  logoutBtn.addEventListener('click', () => {
-    if(confirm('Deseja sair e limpar dados locais (nickname, chaves)?')){
-      localStorage.removeItem('anon_nick');
-      localStorage.removeItem('anon_sex');
-      localStorage.removeItem('clientId');
-      localStorage.removeItem('ecdh_priv_b64');
-      localStorage.removeItem('ecdh_pub_b64');
-      location.reload();
+    // Funções de UI
+    function appendMessage(m) {
+      const div = document.createElement('div');
+      div.className = 'msg ' + (m.nick === nick ? 'me' : 'other');
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = `${m.nick} • ${new Date(m.ts).toLocaleTimeString()}`;
+      const body = document.createElement('div');
+      body.textContent = m.text;
+      div.appendChild(meta);
+      div.appendChild(body);
+      document.getElementById('messages').appendChild(div);
+      scrollBottom();
     }
-  });
 
-  /*****************************************
-   *  File attachments (public & E2EE private)
-   *****************************************/
-  // hidden input
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'image/*,video/*,audio/*,*/*';
-  fileInput.style.display = 'none';
-  document.body.appendChild(fileInput);
-
-  attachBtn.addEventListener('click', ()=> fileInput.click());
-
-  let pendingFile = null;
-
-  fileInput.addEventListener('change', async (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    pendingFile = file;
-
-    // limit
-    const maxBytes = 50 * 1024 * 1024;
-    if(file.size > maxBytes){ alert('Arquivo maior que 50MB.'); fileInput.value=''; pendingFile=null; return; }
-
-    const makePrivate = confirm('Enviar como privado (E2EE) para o usuário selecionado? OK = privado, Cancel = público');
-    if(!makePrivate){
-      await uploadPublicFileAndSendMessage(file);
-    } else {
-      if(!privateTo){ alert('Nenhum destinatário privado selecionado. Clique no nickname para iniciar privado.'); fileInput.value=''; pendingFile=null; return; }
-      await uploadEncryptedFileAndSendMessage(file, privateTo);
+    function scrollBottom() {
+      const el = document.getElementById('messages');
+      el.scrollTop = el.scrollHeight;
     }
-    fileInput.value=''; pendingFile=null;
-  });
-
-  async function uploadPublicFileAndSendMessage(file){
-    const path = `files/${room}/${Date.now()}_${Math.random().toString(36).slice(2,8)}_${file.name}`;
-    const ref = storage.ref(path);
-    const uploadTask = ref.put(file);
-    uploadTask.on('state_changed', snap => {
-      /* opcional: progresso */
-    });
-    await uploadTask;
-    const url = await ref.getDownloadURL();
-    await messagesRef.push({ senderId: clientId, nick, sexo, text:'', file:{path,url,name:file.name,size:file.size,type:file.type,encrypted:false}, ts:Date.now(), privateTo:null });
-  }
-
-  async function uploadEncryptedFileAndSendMessage(file, destClientId){
-    const dest = usersMap[destClientId];
-    if(!dest || !dest.pub){ alert('Chave pública do destinatário indisponível.'); return; }
-    const arrayBuffer = await file.arrayBuffer();
-    const recipientPub = await importPubKeyFromB64(dest.pub);
-    const aesKey = await deriveAESKey(ecdhKeyPair.privateKey, recipientPub);
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, aesKey, arrayBuffer);
-    const ctBlob = new Blob([new Uint8Array(ct)], {type: 'application/octet-stream'});
-    const path = `files/${room}/enc_${Date.now()}_${Math.random().toString(36).slice(2,8)}_${file.name}.enc`;
-    const ref = storage.ref(path);
-    const uploadTask = ref.put(ctBlob);
-    await uploadTask;
-    const url = await ref.getDownloadURL();
-    await messagesRef.push({ senderId: clientId, nick, sexo, text:'', file:{path,url,name:file.name,size:file.size,type:file.type,encrypted:true,iv:ab2b64(iv.buffer)}, ts:Date.now(), privateTo: destClientId });
-    appendMessage({ senderId:clientId, nick, sexo, text: '[arquivo privado enviado: '+file.name+']', ts:Date.now(), privateTo:destClientId, localPlain:true });
-    clearPrivateMode();
-  }
-
-  // Handle incoming file messages (separate listener ensures file messages are handled)
-  messagesRef.limitToLast(300).on('child_added', async snap => {
-    const m = snap.val();
-    if(m.file){
-      if(m.privateTo && m.privateTo !== clientId && m.senderId !== clientId) return; // not for you
-      if(m.file.encrypted){
-        if(m.privateTo === clientId){
-          // download, derive key, decrypt, show
-          try{
-            const resp = await fetch(m.file.url);
-            const ctBuf = await resp.arrayBuffer();
-            const senderProfile = usersMap[m.senderId];
-            if(!senderProfile || !senderProfile.pub){
-              appendMessage({ senderId: m.senderId, nick: m.nick, sexo: m.sexo, text: '[arquivo privado recebido — chave do remetente indisponível]', ts: m.ts });
-              return;
-            }
-            const senderPub = await importPubKeyFromB64(senderProfile.pub);
-            const aesKey = await deriveAESKey(ecdhKeyPair.privateKey, senderPub);
-            const plainBuf = await crypto.subtle.decrypt({name:'AES-GCM', iv: new Uint8Array(b642ab(m.file.iv))}, aesKey, ctBuf);
-            const outBlob = new Blob([plainBuf], { type: m.file.type || 'application/octet-stream' });
-            const localUrl = URL.createObjectURL(outBlob);
-            appendMessageWithFile(m, localUrl, true);
-          }catch(err){
-            console.error('erro arquivo privado', err);
-            appendMessage({ senderId: m.senderId, nick: m.nick, sexo: m.sexo, text: '[falha ao obter/decifrar arquivo]', ts: m.ts });
-          }
-        } else if(m.senderId === clientId){
-          // already shown localPlain
-        }
-      } else {
-        // public file
-        appendMessageWithFile(m, m.file.url, false);
-      }
-    }
-  });
-
-  function appendMessageWithFile(m, url, isPrivate){
-    const div = document.createElement('div');
-    div.className = 'msg ' + (m.senderId === clientId ? 'me' : 'other');
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.textContent = `${m.nick} ${isPrivate? '• privado':''} • ${new Date(m.ts).toLocaleTimeString()}`;
-    meta.addEventListener('click', ()=> { if(m.senderId && m.senderId !== clientId) setPrivateMode(m.senderId, m.nick); });
-    div.appendChild(meta);
-
-    const mime = (m.file && m.file.type) || '';
-    if(mime.startsWith('image/')){
-      const img = document.createElement('img');
-      img.src = url;
-      img.className = 'preview';
-      div.appendChild(img);
-    } else if(mime.startsWith('audio/')){
-      const a = document.createElement('audio');
-      a.controls = true; a.src = url; a.className='preview';
-      div.appendChild(a);
-    } else if(mime.startsWith('video/')){
-      const v = document.createElement('video');
-      v.controls = true; v.src = url; v.className='preview';
-      div.appendChild(v);
-    } else {
-      const a = document.createElement('a');
-      a.href = url; a.download = m.file && m.file.name ? m.file.name : '';
-      a.textContent = 'Baixar: ' + (m.file && m.file.name ? m.file.name : 'arquivo');
-      a.style.color = 'var(--accent)';
-      div.appendChild(a);
-    }
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  /*****************************************
-   *  Initialization
-   *****************************************/
-  (async function init(){
-    await ensureKeyPair();
-    await publishProfile();
-    const pubB64 = localStorage.getItem('ecdh_pub_b64');
-    const fp = pubB64 ? await sha256Hex(b642ab(pubB64)) : null;
-    renderNickDisplay(fp);
-    window.addEventListener('beforeunload', ()=> { try{ db.ref('users/' + clientId + '/lastSeen').set(Date.now()); }catch(e){} });
-  })();
-
-  // send button and enter key
-  sendBtn.addEventListener('click', send);
-  input.addEventListener('keydown', e => { if(e.key === 'Enter') send(); });
-
   </script>
 </body>
 </html>
