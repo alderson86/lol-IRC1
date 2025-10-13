@@ -1,281 +1,256 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>lol-IRC one - Mensageiro Anônimo</title>
-  <style>
-    :root {
-      --bg: #f9fafb;
-      --card-bg: #ffffffcc;
-      --text: #0a0a0a;
-      --muted: #7c7c7c;
-      --primary: #007aff;
-      --radius: 16px;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>lol-IRC MSN - Mensageiro Anônimo</title>
+<style>
+  :root {
+    --bg: #e5ecf9;
+    --card-bg: #ffffff;
+    --text: #000;
+    --muted: #555;
+    --primary: #0084ff;
+    --radius: 8px;
+    --bubble-me: #0084ff;
+    --bubble-other: #f1f0f0;
+  }
 
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
 
-    .chat-container {
-      display: flex;
-      flex-direction: column;
-      background: var(--card-bg);
-      width: 90%;
-      max-width: 900px;
-      height: 90vh;
-      border-radius: var(--radius);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
-      backdrop-filter: blur(12px);
-      padding: 16px;
-      overflow: hidden;
-    }
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    height: 600px;
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    overflow: hidden;
+  }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
+  header {
+    background: var(--primary);
+    color: white;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+  }
 
-    h2 {
-      margin: 0;
-      font-weight: 600;
-      font-size: 20px;
-      color: var(--primary);
-    }
+  header .nick {
+    cursor: pointer;
+    font-weight: 600;
+  }
 
-    .muted {
-      font-size: 13px;
-      color: var(--muted);
-    }
+  #messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #dfe8f7;
+  }
 
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      background: #f2f3f5;
-      border-radius: var(--radius);
-      scroll-behavior: smooth;
-    }
+  .msg {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    word-wrap: break-word;
+    font-size: 14px;
+    position: relative;
+    display: inline-block;
+  }
 
-    .msg {
-      display: inline-block;
-      padding: 8px 12px;
-      border-radius: 14px;
-      max-width: 75%;
-      word-wrap: break-word;
-      position: relative;
-      font-size: 15px;
-    }
+  .msg.me {
+    background: var(--bubble-me);
+    color: white;
+    align-self: flex-end;
+  }
 
-    .msg.me {
-      background: var(--primary);
-      color: white;
-      align-self: flex-end;
-    }
+  .msg.other {
+    background: var(--bubble-other);
+    color: var(--text);
+    align-self: flex-start;
+  }
 
-    .msg.other {
-      background: white;
-      color: var(--text);
-      align-self: flex-start;
-    }
+  .meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 2px;
+    cursor: pointer;
+    user-select: none;
+  }
 
-    .meta {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 2px;
-      cursor: pointer;
-      user-select: none;
-    }
+  footer {
+    display: flex;
+    border-top: 1px solid #ccc;
+  }
 
-    footer {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
+  input[type=text] {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    font-size: 14px;
+    outline: none;
+  }
 
-    input[type=text] {
-      flex: 1;
-      padding: 10px;
-      border-radius: var(--radius);
-      border: 1px solid #ddd;
-      background: white;
-      color: var(--text);
-      font-size: 15px;
-      outline: none;
-      transition: 0.2s;
-    }
+  button {
+    padding: 8px 12px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+  }
 
-    input[type=text]:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(0,122,255,0.15);
-    }
+  button:hover {
+    opacity: 0.9;
+  }
 
-    button {
-      padding: 10px 16px;
-      border-radius: var(--radius);
-      border: none;
-      background: var(--primary);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+  .version {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    padding: 4px 0;
+  }
 
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .nick {
-      background: #f2f3f5;
-      padding: 6px 10px;
-      border-radius: var(--radius);
-      font-size: 14px;
-      color: var(--text);
-      cursor: pointer;
-      user-select: none;
-      border: 1px solid #ddd;
-      transition: 0.2s;
-    }
-
-    .nick:hover {
-      background: #e5e5e5;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 0;
-      }
-      .chat-container {
-        border-radius: 0;
-        width: 100%;
-        height: 100vh;
-      }
-    }
-  </style>
+  /* Modo escuro */
+  body.dark {
+    --bg: #1c1c1c;
+    --card-bg: #2a2a2a;
+    --text: #f5f5f5;
+    --muted: #aaa;
+    --primary: #0a84ff;
+    --bubble-other: #3a3a3a;
+  }
+</style>
 </head>
 <body>
-  <div class="chat-container">
-    <header>
-      <div>
-        <h2>lol-IRC one</h2>
-        <div class="muted">Mensageiro anônimo</div>
-      </div>
-      <div class="nick" id="nick" title="Clique para editar seu nickname">...</div>
-    </header>
+<div class="chat-container">
+  <header>
+    <span>lol-IRC MSN</span>
+    <span class="nick" id="nick" title="Clique para editar seu nickname">...</span>
+  </header>
 
-    <div id="messages" aria-live="polite"></div>
+  <div id="messages" aria-live="polite"></div>
 
-    <footer>
-      <input id="texto" type="text" placeholder="Digite sua mensagem e pressione Enter" />
-      <button id="send">Enviar</button>
-    </footer>
-  </div>
+  <footer>
+    <input id="texto" type="text" placeholder="Digite sua mensagem e pressione Enter" />
+    <button id="send">Enviar</button>
+  </footer>
+  <div class="version">Versão: 1.0 - Chat MSN Anônimo</div>
+</div>
 
-  <!-- Firebase compatível -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<!-- Firebase CDN compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <script>
-    // ===== CONFIGURAÇÃO FIREBASE (INALTERADA) =====
-    const firebaseConfig = {
-      apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
-      authDomain: "lol-irc1.firebaseapp.com",
-      databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com",
-      projectId: "lol-irc1",
-      storageBucket: "lol-irc1.firebasestorage.app",
-      messagingSenderId: "947292658625",
-      appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+<script>
+  // ===== Configuração Firebase =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
+    authDomain: "lol-irc1.firebaseapp.com",
+    databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com",
+    projectId: "lol-irc1",
+    storageBucket: "lol-irc1.firebasestorage.app",
+    messagingSenderId: "947292658625",
+    appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    // ===== NICKNAME =====
-    function randomNick() {
-      const animals = ["lobo","falcao","pantera","raposa","corvo","tigre","orca","golfinho","gato","guerreiro","ninja","saturno","zeus","ares","odin","raio"];
-      return animals[Math.floor(Math.random() * animals.length)] + Math.floor(Math.random() * 9000 + 1000);
+  // ===== Nickname =====
+  function randomNick() {
+    const animals = ["lobo","falcao","pantera","raposa","corvo","tigre","orca","golfinho","gato","guerreiro","ninja","saturno","zeus","ares","odin","raio"];
+    return animals[Math.floor(Math.random() * animals.length)] + Math.floor(Math.random() * 9000 + 1000);
+  }
+
+  let nick = localStorage.getItem('anon_nick') || randomNick();
+  localStorage.setItem('anon_nick', nick);
+  const nickDiv = document.getElementById('nick');
+  nickDiv.innerText = nick;
+
+  nickDiv.addEventListener('click', () => {
+    const novo = prompt("Digite seu novo nickname:", nick);
+    if(novo && novo.trim()){
+      nick = novo.trim().replace(/[<>]/g,'');
+      localStorage.setItem('anon_nick', nick);
+      nickDiv.innerText = nick;
     }
+  });
 
-    let nick = localStorage.getItem('anon_nick') || randomNick();
-    localStorage.setItem('anon_nick', nick);
-    const nickDiv = document.getElementById('nick');
-    nickDiv.innerText = nick;
+  // ===== Chat =====
+  const room = "default";
+  const messagesRef = db.ref('rooms/' + room + '/messages');
 
-    // Editar nickname
-    nickDiv.addEventListener('click', () => {
-      const novo = prompt("Digite seu novo nickname:", nick);
-      if (novo && novo.trim()) {
-        nick = novo.trim();
-        localStorage.setItem('anon_nick', nick);
-        nickDiv.innerText = nick;
-      }
+  // Receber últimas 100 mensagens
+  messagesRef.limitToLast(100).on('child_added', snapshot => {
+    appendMessage(snapshot.val());
+  });
+
+  const input = document.getElementById('texto');
+  const sendBtn = document.getElementById('send');
+  let replyTo = null;
+
+  function sanitize(str){ 
+    return str.replace(/[<>]/g,''); 
+  }
+
+  function send(){
+    let text = input.value.trim();
+    if(!text) return;
+    if(replyTo) { 
+      text = `@${replyTo}: ${text}`;
+      replyTo = null;
+    }
+    messagesRef.push({
+      nick: sanitize(nick),
+      text: sanitize(text),
+      ts: Date.now()
     });
+    input.value = '';
+  }
 
-    // ===== CHAT =====
-    const room = "default";
-    const messagesRef = db.ref('rooms/' + room + '/messages');
+  sendBtn.addEventListener('click', send);
+  input.addEventListener('keydown', e => { if(e.key==='Enter') send(); });
 
-    messagesRef.limitToLast(200).on('child_added', snapshot => {
-      appendMessage(snapshot.val());
+  function appendMessage(m){
+    const div = document.createElement('div');
+    div.className = 'msg ' + (m.nick === nick ? 'me' : 'other');
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = `${m.nick} • ${new Date(m.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+    meta.addEventListener('click', () => {
+      replyTo = m.nick;
+      input.value = `@${m.nick}: `;
+      input.focus();
     });
+    const body = document.createElement('div');
+    body.textContent = m.text;
+    div.appendChild(meta);
+    div.appendChild(body);
+    document.getElementById('messages').appendChild(div);
+    scrollBottom();
+  }
 
-    const input = document.getElementById('texto');
-    const sendBtn = document.getElementById('send');
-    let replyTo = null;
+  function scrollBottom(){
+    const el = document.getElementById('messages');
+    el.scrollTop = el.scrollHeight;
+  }
 
-    function send() {
-      const text = input.value.trim();
-      if (!text) return;
-      let finalText = text;
-      if (replyTo) {
-        finalText = `@${replyTo}: ${text}`;
-        replyTo = null;
-      }
-      messagesRef.push({ nick, text: finalText, ts: Date.now() });
-      input.value = '';
-    }
-
-    sendBtn.addEventListener('click', send);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-
-    function appendMessage(m) {
-      const div = document.createElement('div');
-      div.className = 'msg ' + (m.nick === nick ? 'me' : 'other');
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = `${m.nick} • ${new Date(m.ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-      meta.addEventListener('click', () => {
-        replyTo = m.nick;
-        input.value = `@${m.nick}: `;
-        input.focus();
-      });
-      const body = document.createElement('div');
-      body.textContent = m.text;
-      div.appendChild(meta);
-      div.appendChild(body);
-      document.getElementById('messages').appendChild(div);
-      scrollBottom();
-    }
-
-    function scrollBottom() {
-      const el = document.getElementById('messages');
-      el.scrollTop = el.scrollHeight;
-    }
-  </script>
+  // Modo escuro alternável via tecla D
+  document.addEventListener('keydown', e => { if(e.key==='d') document.body.classList.toggle('dark'); });
+</script>
 </body>
 </html>
