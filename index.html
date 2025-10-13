@@ -38,29 +38,24 @@
     </footer>
   </div>
 
+  <!-- Firebase Compat -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
     // ===== CONFIGURAÇÃO FIREBASE =====
-    // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
-  authDomain: "lol-irc1.firebaseapp.com",
-  projectId: "lol-irc1",
-  storageBucket: "lol-irc1.firebasestorage.app",
-  messagingSenderId: "947292658625",
-  appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
+      authDomain: "lol-irc1.firebaseapp.com",
+      projectId: "lol-irc1",
+      storageBucket: "lol-irc1.firebasestorage.app",
+      messagingSenderId: "947292658625",
+      appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
     };
+
+    // Inicializa Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     // Nickname aleatório
     function randomNick(){
@@ -71,10 +66,6 @@ const app = initializeApp(firebaseConfig);
     const nick = localStorage.getItem('anon_nick') || randomNick();
     localStorage.setItem('anon_nick', nick);
     document.getElementById('nick').innerText = nick;
-
-    // Inicializa Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
 
     // Sala via query string (tipo IRC channel)
     const urlParams = new URLSearchParams(window.location.search);
