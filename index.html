@@ -298,12 +298,13 @@
   const messagesRef = db.ref('rooms/' + room + '/messages');
   const usersRef = db.ref('rooms/' + room + '/users');
 
-  // Online
+  // Usuário online
   const usersOnlineDiv = document.getElementById('users-online');
   const userId = nick + '_' + Math.floor(Math.random()*100000);
   usersRef.child(userId).set(nick);
   usersRef.child(userId).onDisconnect().remove();
 
+  // Atualizar lista de usuários online
   usersRef.on('value', snapshot => {
     usersOnlineDiv.innerHTML = '';
     snapshot.forEach(u => {
@@ -313,67 +314,61 @@
     });
   });
 
-  function sanitize(str){ 
-    return str.replace(/[<>]/g,''); 
-  }
+  const input = document.getElementById('texto');
+  const sendBtn = document.getElementById('send');
+  let replyTo = null;
+
+  function sanitize(str){ return str.replace(/[<>]/g,''); }
 
   function send(){
     let text = input.value.trim();
     if(!text) return;
-    if(replyTo) { 
-      text = `@${replyTo}: ${text}`;
-      replyTo = null;
-    }
-    messagesRef.push({
-      nick: sanitize(nick),
-      text: sanitize(text),
-      ts: Date.now()
-    });
+    if(replyTo) { text = `@${replyTo}: ${text}`; replyTo = null; }
+    messagesRef.push({ nick: sanitize(nick), text: sanitize(text), ts: Date.now() });
     input.value = '';
   }
-
-  const input = document.getElementById('texto');
-  const sendBtn = document.getElementById('send');
-  let replyTo = null;
 
   sendBtn.addEventListener('click', send);
   input.addEventListener('keydown', e => { if(e.key==='Enter') send(); });
 
   // Receber últimas 100 mensagens
   messagesRef.limitToLast(100).on('child_added', snapshot => {
-    appendMessage(snapshot.val());
+    const m = snapshot.val();
+    appendMessage(m);
   });
 
   function appendMessage(m){
     const div = document.createElement('div');
-    div.className = 'msg ' + (m.nick === nick ? 'me' : 'other');
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.textContent = `${m.nick} • ${new Date(m.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-    meta.addEventListener('click', () => {
-      replyTo = m.nick;
-      input.value = `@${m.nick}: `;
-      input.focus();
-    });
-    const body = document.createElement('div');
-    body.textContent = m.text;
-    div.appendChild(meta);
-    div.appendChild(body);
+    if(m.info){
+      div.className = 'msg info';
+      div.textContent = m.text;
+    } else {
+      div.className = 'msg ' + (m.nick === nick ? 'me' : 'other');
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = `${m.nick} • ${new Date(m.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+      meta.addEventListener('click', () => { replyTo = m.nick; input.value = `@${m.nick}: `; input.focus(); });
+      const body = document.createElement('div');
+      body.textContent = m.text;
+      div.appendChild(meta);
+      div.appendChild(body);
+    }
     document.getElementById('messages').appendChild(div);
     scrollBottom();
   }
 
-  function scrollBottom(){
-    const el = document.getElementById('messages');
-    el.scrollTop = el.scrollHeight;
-  }
+  function scrollBottom(){ const el = document.getElementById('messages'); el.scrollTop = el.scrollHeight; }
 
   // Aviso de entrada
-  messagesRef.push({nick:'Sistema', text:`${nick} entrou no chat`, ts:Date.now(), info:true});
+  messagesRef.push({ nick:'Sistema', text:`${nick} entrou no chat`, ts: Date.now(), info:true });
 
-  // Modo escuro alternável via tecla D
+  // Aviso de saída
+  window.addEventListener('beforeunload', () => {
+    messagesRef.push({ nick:'Sistema', text:`${nick} saiu do chat`, ts: Date.now(), info:true });
+  });
+
+  // Modo escuro via tecla D
   document.addEventListener('keydown', e => { if(e.key==='d') document.body.classList.toggle('dark'); });
-
 </script>
 </body>
 </html>
