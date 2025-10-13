@@ -50,10 +50,10 @@
       projectId: "lol-irc1",
       storageBucket: "lol-irc1.firebasestorage.app",
       messagingSenderId: "947292658625",
-      appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
+      appId: "1:947292658625:web:9255c2124aa24a7d7f6d40",
+      databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com" // <- importante
     };
 
-    // Inicializa Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -72,7 +72,7 @@
     const room = urlParams.get('room') || 'default';
     const messagesRef = db.ref('rooms/' + room + '/messages');
 
-    // Escuta mensagens
+    // Escuta mensagens em tempo real
     messagesRef.limitToLast(200).on('child_added', snapshot => {
       appendMessage(snapshot.val());
     });
