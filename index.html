@@ -1,374 +1,281 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>lol-IRC MSN - Mensageiro Anônimo</title>
-<style>
-  :root {
-    --bg: #e5ecf9;
-    --card-bg: #ffffff;
-    --text: #000;
-    --muted: #555;
-    --primary: #0084ff;
-    --radius: 8px;
-    --bubble-me: #0084ff;
-    --bubble-other: #f1f0f0;
-    --font-size: 16px;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>lol-IRC one - Mensageiro Anônimo</title>
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card-bg: #ffffffcc;
+      --text: #0a0a0a;
+      --muted: #7c7c7c;
+      --primary: #007aff;
+      --radius: 16px;
+    }
 
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--bg);
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-  .chat-container {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    background: var(--card-bg);
-  }
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      width: 90%;
+      max-width: 900px;
+      height: 90vh;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(12px);
+      padding: 16px;
+      overflow: hidden;
+    }
 
-  header {
-    background: var(--primary);
-    color: white;
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: bold;
-    font-size: var(--font-size);
-  }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
 
-  header .nick {
-    cursor: pointer;
-    font-weight: 600;
-  }
+    h2 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 20px;
+      color: var(--primary);
+    }
 
-  .main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
+    .muted {
+      font-size: 13px;
+      color: var(--muted);
+    }
 
-  #messages-container {
-    flex: 3;
-    display: flex;
-    flex-direction: column;
-    background: #dfe8f7;
-  }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #f2f3f5;
+      border-radius: var(--radius);
+      scroll-behavior: smooth;
+    }
 
-  #messages {
-    flex: 1;
-    padding: 16px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+    .msg {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 14px;
+      max-width: 75%;
+      word-wrap: break-word;
+      position: relative;
+      font-size: 15px;
+    }
 
-  .msg {
-    max-width: 70%;
-    padding: 10px 14px;
-    border-radius: var(--radius);
-    word-wrap: break-word;
-    font-size: var(--font-size);
-    position: relative;
-    display: inline-block;
-  }
+    .msg.me {
+      background: var(--primary);
+      color: white;
+      align-self: flex-end;
+    }
 
-  .msg.me {
-    background: var(--bubble-me);
-    color: white;
-    align-self: flex-end;
-  }
+    .msg.other {
+      background: white;
+      color: var(--text);
+      align-self: flex-start;
+    }
 
-  .msg.other {
-    background: var(--bubble-other);
-    color: var(--text);
-    align-self: flex-start;
-  }
+    .meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 2px;
+      cursor: pointer;
+      user-select: none;
+    }
 
-  .msg.info {
-    background: #ffeeba;
-    color: #856404;
-    align-self: center;
-    max-width: 100%;
-  }
+    footer {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
 
-  .meta {
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 2px;
-    cursor: pointer;
-    user-select: none;
-  }
+    input[type=text] {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid #ddd;
+      background: white;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: 0.2s;
+    }
 
-  footer {
-    display: flex;
-    border-top: 1px solid #ccc;
-    padding: 8px;
-  }
+    input[type=text]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0,122,255,0.15);
+    }
 
-  input[type=text] {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    font-size: var(--font-size);
-    outline: none;
-  }
+    button {
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
 
-  button {
-    padding: 10px 16px;
-    border: none;
-    background: var(--primary);
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-  }
+    button:hover {
+      opacity: 0.9;
+    }
 
-  button:hover {
-    opacity: 0.9;
-  }
+    .nick {
+      background: #f2f3f5;
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid #ddd;
+      transition: 0.2s;
+    }
 
-  #sidebar {
-    flex: 1;
-    border-left: 1px solid #ccc;
-    background: #f0f0f0;
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    overflow-y: auto;
-    min-width: 200px;
-  }
+    .nick:hover {
+      background: #e5e5e5;
+    }
 
-  #sidebar h3 {
-    margin-top: 0;
-    font-size: 16px;
-    text-align: center;
-  }
-
-  #users-online {
-    flex: 1;
-    margin-top: 8px;
-  }
-
-  #users-online div {
-    padding: 4px 6px;
-    margin-bottom: 4px;
-    background: #e1e1e1;
-    border-radius: 4px;
-  }
-
-  #about {
-    display: none;
-    padding: 8px;
-    font-size: 14px;
-  }
-
-  .tabs {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 8px;
-  }
-
-  .tab-btn {
-    cursor: pointer;
-    padding: 4px 8px;
-    background: #ddd;
-    border-radius: 4px;
-    font-weight: bold;
-  }
-
-  .tab-btn.active {
-    background: var(--primary);
-    color: white;
-  }
-
-  /* Modo escuro */
-  body.dark {
-    --bg: #1c1c1c;
-    --card-bg: #2a2a2a;
-    --text: #f5f5f5;
-    --muted: #aaa;
-    --primary: #0a84ff;
-    --bubble-other: #3a3a3a;
-  }
-
-  body.dark #sidebar {
-    background: #2a2a2a;
-  }
-
-  body.dark #users-online div {
-    background: #3a3a3a;
-  }
-</style>
+    @media (max-width: 600px) {
+      body {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+      }
+      .chat-container {
+        border-radius: 0;
+        width: 100%;
+        height: 100vh;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="chat-container">
-  <header>
-    <span>lol-IRC MSN</span>
-    <span class="nick" id="nick" title="Clique para editar seu nickname">...</span>
-  </header>
-
-  <div class="main">
-    <div id="messages-container">
-      <div class="tabs">
-        <div class="tab-btn active" data-tab="chat">Chat</div>
-        <div class="tab-btn" data-tab="about">Sobre</div>
+  <div class="chat-container">
+    <header>
+      <div>
+        <h2>lol-IRC one</h2>
+        <div class="muted">Dev. Eder Prioli</div>
       </div>
+      <div class="nick" id="nick" title="Clique para editar seu nickname">...</div>
+    </header>
 
-      <div id="messages"></div>
+    <div id="messages" aria-live="polite"></div>
 
-      <div id="about">
-        <strong>Desenvolvedor:</strong> Eder<br>
-        <strong>Email:</strong> eder@example.com<br>
-        <strong>Versão:</strong> 1.0<br>
-        Este é um mensageiro anônimo estilo MSN, exclusivo para desktop.
-      </div>
-
-      <footer>
-        <input id="texto" type="text" placeholder="Digite sua mensagem e pressione Enter" />
-        <button id="send">Enviar</button>
-      </footer>
-    </div>
-
-    <div id="sidebar">
-      <h3>Usuários Online</h3>
-      <div id="users-online"></div>
-    </div>
+    <footer>
+      <input id="texto" type="text" placeholder="Digite sua mensagem e pressione Enter" />
+      <button id="send">Enviar</button>
+    </footer>
   </div>
 
-  <div class="version">Versão: 1.0 - Chat MSN Anônimo</div>
-</div>
+  <!-- Firebase compatível -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<!-- Firebase CDN compat -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    // ===== CONFIGURAÇÃO FIREBASE (INALTERADA) =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
+      authDomain: "lol-irc1.firebaseapp.com",
+      databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com",
+      projectId: "lol-irc1",
+      storageBucket: "lol-irc1.firebasestorage.app",
+      messagingSenderId: "947292658625",
+      appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-<script>
-  // ===== Configuração Firebase =====
-  const firebaseConfig = {
-    apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
-    authDomain: "lol-irc1.firebaseapp.com",
-    databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com",
-    projectId: "lol-irc1",
-    storageBucket: "lol-irc1.firebasestorage.app",
-    messagingSenderId: "947292658625",
-    appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  // ===== Nickname =====
-  function randomNick() {
-    const animals = ["lobo","falcao","pantera","raposa","corvo","tigre","orca","golfinho","gato","guerreiro","ninja","saturno","zeus","ares","odin","raio"];
-    return animals[Math.floor(Math.random() * animals.length)] + Math.floor(Math.random() * 9000 + 1000);
-  }
-
-  let nick = localStorage.getItem('anon_nick') || randomNick();
-  localStorage.setItem('anon_nick', nick);
-  const nickDiv = document.getElementById('nick');
-  nickDiv.innerText = nick;
-
-  nickDiv.addEventListener('click', () => {
-    const novo = prompt("Digite seu novo nickname:", nick);
-    if(novo && novo.trim()){
-      nick = novo.trim().replace(/[<>]/g,'');
-      localStorage.setItem('anon_nick', nick);
-      nickDiv.innerText = nick;
+    // ===== NICKNAME =====
+    function randomNick() {
+      const animals = ["lobo","falcao","pantera","raposa","corvo","tigre","orca","golfinho","gato","guerreiro","ninja","saturno","zeus","ares","odin","raio"];
+      return animals[Math.floor(Math.random() * animals.length)] + Math.floor(Math.random() * 9000 + 1000);
     }
-  });
 
-  // ===== Tabs =====
-  const tabs = document.querySelectorAll('.tab-btn');
-  tabs.forEach(t => t.addEventListener('click', () => {
-    tabs.forEach(b => b.classList.remove('active'));
-    t.classList.add('active');
-    document.getElementById('messages').style.display = t.dataset.tab==='chat'?'block':'none';
-    document.getElementById('about').style.display = t.dataset.tab==='about'?'block':'none';
-  }));
+    let nick = localStorage.getItem('anon_nick') || randomNick();
+    localStorage.setItem('anon_nick', nick);
+    const nickDiv = document.getElementById('nick');
+    nickDiv.innerText = nick;
 
-  // ===== Chat =====
-  const room = "default";
-  const messagesRef = db.ref('rooms/' + room + '/messages');
-  const usersRef = db.ref('rooms/' + room + '/users');
-
-  // Usuário online
-  const usersOnlineDiv = document.getElementById('users-online');
-  const userId = nick + '_' + Math.floor(Math.random()*100000);
-  usersRef.child(userId).set(nick);
-  usersRef.child(userId).onDisconnect().remove();
-
-  // Atualizar lista de usuários online
-  usersRef.on('value', snapshot => {
-    usersOnlineDiv.innerHTML = '';
-    snapshot.forEach(u => {
-      const div = document.createElement('div');
-      div.textContent = u.val();
-      usersOnlineDiv.appendChild(div);
+    // Editar nickname
+    nickDiv.addEventListener('click', () => {
+      const novo = prompt("Digite seu novo nickname:", nick);
+      if (novo && novo.trim()) {
+        nick = novo.trim();
+        localStorage.setItem('anon_nick', nick);
+        nickDiv.innerText = nick;
+      }
     });
-  });
 
-  const input = document.getElementById('texto');
-  const sendBtn = document.getElementById('send');
-  let replyTo = null;
+    // ===== CHAT =====
+    const room = "default";
+    const messagesRef = db.ref('rooms/' + room + '/messages');
 
-  function sanitize(str){ return str.replace(/[<>]/g,''); }
+    messagesRef.limitToLast(200).on('child_added', snapshot => {
+      appendMessage(snapshot.val());
+    });
 
-  function send(){
-    let text = input.value.trim();
-    if(!text) return;
-    if(replyTo) { text = `@${replyTo}: ${text}`; replyTo = null; }
-    messagesRef.push({ nick: sanitize(nick), text: sanitize(text), ts: Date.now() });
-    input.value = '';
-  }
+    const input = document.getElementById('texto');
+    const sendBtn = document.getElementById('send');
+    let replyTo = null;
 
-  sendBtn.addEventListener('click', send);
-  input.addEventListener('keydown', e => { if(e.key==='Enter') send(); });
+    function send() {
+      const text = input.value.trim();
+      if (!text) return;
+      let finalText = text;
+      if (replyTo) {
+        finalText = `@${replyTo}: ${text}`;
+        replyTo = null;
+      }
+      messagesRef.push({ nick, text: finalText, ts: Date.now() });
+      input.value = '';
+    }
 
-  // Receber últimas 100 mensagens
-  messagesRef.limitToLast(100).on('child_added', snapshot => {
-    const m = snapshot.val();
-    appendMessage(m);
-  });
+    sendBtn.addEventListener('click', send);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 
-  function appendMessage(m){
-    const div = document.createElement('div');
-    if(m.info){
-      div.className = 'msg info';
-      div.textContent = m.text;
-    } else {
+    function appendMessage(m) {
+      const div = document.createElement('div');
       div.className = 'msg ' + (m.nick === nick ? 'me' : 'other');
       const meta = document.createElement('div');
       meta.className = 'meta';
-      meta.textContent = `${m.nick} • ${new Date(m.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-      meta.addEventListener('click', () => { replyTo = m.nick; input.value = `@${m.nick}: `; input.focus(); });
+      meta.textContent = `${m.nick} • ${new Date(m.ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+      meta.addEventListener('click', () => {
+        replyTo = m.nick;
+        input.value = `@${m.nick}: `;
+        input.focus();
+      });
       const body = document.createElement('div');
       body.textContent = m.text;
       div.appendChild(meta);
       div.appendChild(body);
+      document.getElementById('messages').appendChild(div);
+      scrollBottom();
     }
-    document.getElementById('messages').appendChild(div);
-    scrollBottom();
-  }
 
-  function scrollBottom(){ const el = document.getElementById('messages'); el.scrollTop = el.scrollHeight; }
-
-  // Aviso de entrada
-  messagesRef.push({ nick:'Sistema', text:`${nick} entrou no chat`, ts: Date.now(), info:true });
-
-  // Aviso de saída
-  window.addEventListener('beforeunload', () => {
-    messagesRef.push({ nick:'Sistema', text:`${nick} saiu do chat`, ts: Date.now(), info:true });
-  });
-
-  // Modo escuro via tecla D
-  document.addEventListener('keydown', e => { if(e.key==='d') document.body.classList.toggle('dark'); });
-</script>
+    function scrollBottom() {
+      const el = document.getElementById('messages');
+      el.scrollTop = el.scrollHeight;
+    }
+  </script>
 </body>
 </html>
