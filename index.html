@@ -22,19 +22,15 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--bg);
     display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
+    overflow: hidden;
   }
 
   .chat-container {
     display: flex;
     flex-direction: column;
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
+    flex: 1;
     background: var(--card-bg);
-    overflow: hidden;
   }
 
   header {
@@ -53,6 +49,19 @@
     font-weight: 600;
   }
 
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  #messages-container {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    background: #dfe8f7;
+  }
+
   #messages {
     flex: 1;
     padding: 16px;
@@ -60,7 +69,6 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: #dfe8f7;
   }
 
   .msg {
@@ -83,6 +91,13 @@
     background: var(--bubble-other);
     color: var(--text);
     align-self: flex-start;
+  }
+
+  .msg.info {
+    background: #ffeeba;
+    color: #856404;
+    align-self: center;
+    max-width: 100%;
   }
 
   .meta {
@@ -120,11 +135,58 @@
     opacity: 0.9;
   }
 
-  .version {
-    font-size: 12px;
-    color: var(--muted);
+  #sidebar {
+    flex: 1;
+    border-left: 1px solid #ccc;
+    background: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: auto;
+    min-width: 200px;
+  }
+
+  #sidebar h3 {
+    margin-top: 0;
+    font-size: 16px;
     text-align: center;
-    padding: 6px 0;
+  }
+
+  #users-online {
+    flex: 1;
+    margin-top: 8px;
+  }
+
+  #users-online div {
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    background: #e1e1e1;
+    border-radius: 4px;
+  }
+
+  #about {
+    display: none;
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 8px;
+  }
+
+  .tab-btn {
+    cursor: pointer;
+    padding: 4px 8px;
+    background: #ddd;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+
+  .tab-btn.active {
+    background: var(--primary);
+    color: white;
   }
 
   /* Modo escuro */
@@ -136,6 +198,14 @@
     --primary: #0a84ff;
     --bubble-other: #3a3a3a;
   }
+
+  body.dark #sidebar {
+    background: #2a2a2a;
+  }
+
+  body.dark #users-online div {
+    background: #3a3a3a;
+  }
 </style>
 </head>
 <body>
@@ -145,12 +215,34 @@
     <span class="nick" id="nick" title="Clique para editar seu nickname">...</span>
   </header>
 
-  <div id="messages" aria-live="polite"></div>
+  <div class="main">
+    <div id="messages-container">
+      <div class="tabs">
+        <div class="tab-btn active" data-tab="chat">Chat</div>
+        <div class="tab-btn" data-tab="about">Sobre</div>
+      </div>
 
-  <footer>
-    <input id="texto" type="text" placeholder="Digite sua mensagem e pressione Enter" />
-    <button id="send">Enviar</button>
-  </footer>
+      <div id="messages"></div>
+
+      <div id="about">
+        <strong>Desenvolvedor:</strong> Eder<br>
+        <strong>Email:</strong> eder@example.com<br>
+        <strong>Versão:</strong> 1.0<br>
+        Este é um mensageiro anônimo estilo MSN, exclusivo para desktop.
+      </div>
+
+      <footer>
+        <input id="texto" type="text" placeholder="Digite sua mensagem e pressione Enter" />
+        <button id="send">Enviar</button>
+      </footer>
+    </div>
+
+    <div id="sidebar">
+      <h3>Usuários Online</h3>
+      <div id="users-online"></div>
+    </div>
+  </div>
+
   <div class="version">Versão: 1.0 - Chat MSN Anônimo</div>
 </div>
 
@@ -192,18 +284,34 @@
     }
   });
 
+  // ===== Tabs =====
+  const tabs = document.querySelectorAll('.tab-btn');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(b => b.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('messages').style.display = t.dataset.tab==='chat'?'block':'none';
+    document.getElementById('about').style.display = t.dataset.tab==='about'?'block':'none';
+  }));
+
   // ===== Chat =====
   const room = "default";
   const messagesRef = db.ref('rooms/' + room + '/messages');
+  const usersRef = db.ref('rooms/' + room + '/users');
 
-  // Receber últimas 100 mensagens
-  messagesRef.limitToLast(100).on('child_added', snapshot => {
-    appendMessage(snapshot.val());
+  // Online
+  const usersOnlineDiv = document.getElementById('users-online');
+  const userId = nick + '_' + Math.floor(Math.random()*100000);
+  usersRef.child(userId).set(nick);
+  usersRef.child(userId).onDisconnect().remove();
+
+  usersRef.on('value', snapshot => {
+    usersOnlineDiv.innerHTML = '';
+    snapshot.forEach(u => {
+      const div = document.createElement('div');
+      div.textContent = u.val();
+      usersOnlineDiv.appendChild(div);
+    });
   });
-
-  const input = document.getElementById('texto');
-  const sendBtn = document.getElementById('send');
-  let replyTo = null;
 
   function sanitize(str){ 
     return str.replace(/[<>]/g,''); 
@@ -224,8 +332,17 @@
     input.value = '';
   }
 
+  const input = document.getElementById('texto');
+  const sendBtn = document.getElementById('send');
+  let replyTo = null;
+
   sendBtn.addEventListener('click', send);
   input.addEventListener('keydown', e => { if(e.key==='Enter') send(); });
+
+  // Receber últimas 100 mensagens
+  messagesRef.limitToLast(100).on('child_added', snapshot => {
+    appendMessage(snapshot.val());
+  });
 
   function appendMessage(m){
     const div = document.createElement('div');
@@ -251,8 +368,12 @@
     el.scrollTop = el.scrollHeight;
   }
 
+  // Aviso de entrada
+  messagesRef.push({nick:'Sistema', text:`${nick} entrou no chat`, ts:Date.now(), info:true});
+
   // Modo escuro alternável via tecla D
   document.addEventListener('keydown', e => { if(e.key==='d') document.body.classList.toggle('dark'); });
+
 </script>
 </body>
 </html>
