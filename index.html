@@ -3,279 +3,413 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>lol-IRC one - Mensageiro Anônimo</title>
+  <title>MBH</title>
   <style>
-    :root {
-      --bg: #f9fafb;
-      --card-bg: #ffffffcc;
-      --text: #0a0a0a;
-      --muted: #7c7c7c;
-      --primary: #007aff;
-      --radius: 16px;
+    /* === VARIÁVEIS E RESET === */
+    :root{
+      --bg-light: #f9fafb;
+      --panel-light: #ffffff;
+      --text-light: #0a0a0a;
+      --muted-light: #6b6b6b;
+      --accent-light: #007aff;
+
+      --bg-dark: #0f0f10;
+      --panel-dark: #161616;
+      --text-dark: #e6e6e6;
+      --muted-dark: #9a9a9a;
+      --accent-dark: #00bfff;
+
+      --users-width: 260px;
+      --font: "Courier New", monospace;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;width:100%}
+    body{font-family:var(--font);height:100vh;width:100vw;overflow:hidden;display:flex;align-items:stretch;}
+
+    /* theme default */
+    body[data-theme="light"]{
+      background:var(--bg-light);
+      color:var(--text-light);
+    }
+    body[data-theme="light"] .container { background:var(--panel-light); color:var(--text-light); }
+    body[data-theme="light"] .accent { color: var(--accent-light); }
+    body[data-theme="light"] .users { background:#f1f1f1; }
+    body[data-theme="light"] .messages { background:#fbfbfb; color:var(--text-light); }
+    body[data-theme="light"] .msg.other { background:#e9e9e9; color:var(--text-light); }
+
+    body[data-theme="dark"]{
+      background:var(--bg-dark);
+      color:var(--text-dark);
+    }
+    body[data-theme="dark"] .container { background:var(--panel-dark); color:var(--text-dark); }
+    body[data-theme="dark"] .accent { color: var(--accent-dark); }
+    body[data-theme="dark"] .users { background:#141414; }
+    body[data-theme="dark"] .messages { background:#0b0b0b; color:var(--text-dark); }
+    body[data-theme="dark"] .msg.other { background:#222; color:var(--text-dark); }
+
+    /* container ocupa toda a tela */
+    .container { display:flex;flex-direction:column;width:100vw;height:100vh;border-left:0;border-right:0; }
+
+    /* header */
+    header { display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(0,0,0,0.06); }
+    .title { font-weight:bold;font-size:16px; }
+    .controls { display:flex;gap:8px;align-items:center; }
+
+    .nick { cursor:pointer;padding:6px 8px;border-radius:6px;border:1px solid rgba(0,0,0,0.06); background:transparent; font-size:13px; }
+    .theme-btn { cursor:pointer;padding:6px 8px;border-radius:6px;border:1px solid rgba(0,0,0,0.06); background:transparent; font-size:14px; }
+
+    /* main split */
+    .main { display:flex;flex:1;min-height:0; } /* min-height:0 important for flex scrolling */
+
+    /* left: chat */
+    .left { display:flex;flex-direction:column;flex:1;min-width:0; } /* min-width:0 allows children to shrink */
+    .messages { flex:1; overflow:auto; padding:12px; font-size:14px; }
+    .msg { margin-bottom:8px; padding:6px 8px; border-radius:6px; max-width:78%; word-break:break-word; }
+    .msg.me { background:transparent; border:1px solid rgba(0,0,0,0.06); align-self:flex-end; color:inherit; }
+    .msg.other { align-self:flex-start; }
+    .meta { font-size:12px; color:rgba(0,0,0,0.45); cursor:pointer; margin-bottom:4px; display:block; }
+    .meta.dark { color: rgba(255,255,255,0.45); }
+
+    /* bottom input */
+    .composer { display:flex;padding:10px;border-top:1px solid rgba(0,0,0,0.06); gap:8px; }
+    .composer input[type="text"]{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);font-size:14px}
+    .composer button { padding:8px 12px;border-radius:8px;border:none;cursor:pointer;background:#007aff;color:white;font-weight:600 }
+
+    /* right: users & PM tabs */
+    .right { width:var(--users-width); border-left:1px solid rgba(0,0,0,0.06); display:flex;flex-direction:column; min-width:200px; max-width:360px; }
+    .users { padding:10px; overflow:auto; flex:1; }
+    .users .user { padding:8px;border-radius:6px;margin-bottom:6px;cursor:pointer;border:1px solid rgba(0,0,0,0.04); display:flex;justify-content:space-between;align-items:center; }
+    .pm-panel { padding:10px;border-top:1px solid rgba(0,0,0,0.04); max-height:240px; overflow:auto }
+    .pm-tab { padding:6px 8px;border-radius:6px;margin-bottom:6px;border:1px solid rgba(0,0,0,0.04);cursor:pointer;color:inherit;background:transparent }
+
+    /* about panel (hidden by default) */
+    .about { padding:12px; overflow:auto; display:none; }
+
+    /* responsive */
+    @media (max-width:900px) {
+      .right { display:none; }
     }
 
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .chat-container {
-      display: flex;
-      flex-direction: column;
-      background: var(--card-bg);
-      width: 90%;
-      max-width: 900px;
-      height: 90vh;
-      border-radius: var(--radius);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
-      backdrop-filter: blur(12px);
-      padding: 16px;
-      overflow: hidden;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    h2 {
-      margin: 0;
-      font-weight: 600;
-      font-size: 20px;
-      color: var(--primary);
-    }
-
-    .muted {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      background: #f2f3f5;
-      border-radius: var(--radius);
-      scroll-behavior: smooth;
-    }
-
-    .msg {
-      display: inline-block;
-      padding: 8px 12px;
-      border-radius: 14px;
-      max-width: 75%;
-      word-wrap: break-word;
-      position: relative;
-      font-size: 15px;
-    }
-
-    .msg.me {
-      background: var(--primary);
-      color: white;
-      align-self: flex-end;
-    }
-
-    .msg.other {
-      background: white;
-      color: var(--text);
-      align-self: flex-start;
-    }
-
-    .meta {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 2px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    footer {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    input[type=text] {
-      flex: 1;
-      padding: 10px;
-      border-radius: var(--radius);
-      border: 1px solid #ddd;
-      background: white;
-      color: var(--text);
-      font-size: 15px;
-      outline: none;
-      transition: 0.2s;
-    }
-
-    input[type=text]:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(0,122,255,0.15);
-    }
-
-    button {
-      padding: 10px 16px;
-      border-radius: var(--radius);
-      border: none;
-      background: var(--primary);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .nick {
-      background: #f2f3f5;
-      padding: 6px 10px;
-      border-radius: var(--radius);
-      font-size: 14px;
-      color: var(--text);
-      cursor: pointer;
-      user-select: none;
-      border: 1px solid #ddd;
-      transition: 0.2s;
-    }
-
-    .nick:hover {
-      background: #e5e5e5;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 0;
-      }
-      .chat-container {
-        border-radius: 0;
-        width: 100%;
-        height: 100vh;
-      }
-    }
   </style>
 </head>
-<body>
-  <div class="chat-container">
+<body data-theme="dark">
+  <div class="container">
     <header>
-      <div>
-        <h2>lol-IRC one</h2>
-        <div class="muted">Dev. Eder Prioli</div>
+      <div class="title accent">Black Hole</div>
+      <div class="controls">
+        <div id="nick" class="nick" title="Clique para editar seu nickname">...</div>
+        <button id="themeToggle" class="theme-btn">☀️</button>
       </div>
-      <div class="nick" id="nick" title="Clique para editar seu nickname">...</div>
     </header>
 
-    <div id="messages" aria-live="polite"></div>
+    <div class="main">
+      <div class="left">
+        <div id="messages" class="messages" aria-live="polite"></div>
 
-    <footer>
-      <input id="texto" type="text" placeholder="Digite sua mensagem e pressione Enter" />
-      <button id="send">Enviar</button>
-    </footer>
+        <div class="composer">
+          <input id="texto" type="text" placeholder="Digite sua mensagem (use /nick ou /msg)"/>
+          <button id="send">Enviar</button>
+        </div>
+      </div>
+
+      <div class="right">
+        <div style="padding:10px;border-bottom:1px solid rgba(0,0,0,0.04);font-weight:bold">Usuários na sala</div>
+        <div id="usersList" class="users">Carregando...</div>
+        <div style="padding:10px;border-top:1px solid rgba(0,0,0,0.04);font-weight:bold">Conversas privadas</div>
+        <div id="pmTabs" class="pm-panel"></div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Firebase compatível -->
+  <!-- Firebase compatível (INALTERADO) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
-    // ===== CONFIGURAÇÃO FIREBASE (INALTERADA) =====
-    const firebaseConfig = {
-      apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
-      authDomain: "lol-irc1.firebaseapp.com",
-      databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com",
-      projectId: "lol-irc1",
-      storageBucket: "lol-irc1.firebasestorage.app",
-      messagingSenderId: "947292658625",
-      appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  /********************************************************
+   * FIREBASE: configuração **mantida exatamente** como antes
+   ********************************************************/
+  const firebaseConfig = {
+    apiKey: "AIzaSyDnU0__Y6KTjYZq7h2OqzDvczw9Z4lCYyM",
+    authDomain: "lol-irc1.firebaseapp.com",
+    databaseURL: "https://lol-irc1-default-rtdb.firebaseio.com",
+    projectId: "lol-irc1",
+    storageBucket: "lol-irc1.firebasestorage.app",
+    messagingSenderId: "947292658625",
+    appId: "1:947292658625:web:9255c2124aa24a7d7f6d40"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    // ===== NICKNAME =====
-    function randomNick() {
-      const animals = ["lobo","falcao","pantera","raposa","corvo","tigre","orca","golfinho","gato","guerreiro","ninja","saturno","zeus","ares","odin","raio"];
-      return animals[Math.floor(Math.random() * animals.length)] + Math.floor(Math.random() * 9000 + 1000);
+  /********************************************************
+   * Utilitários base64 <-> ArrayBuffer
+   ********************************************************/
+  function bufToBase64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+  function base64ToBuf(b64){ const bin = atob(b64); const arr = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return arr.buffer; }
+
+  /********************************************************
+   * CRIPTO: ECDH(P-256) + AES-GCM (mesma lógica E2EE)
+   ********************************************************/
+  let ecdhKeyPair = null;
+  let myPublicBase64 = null;
+  const sharedKeyCache = {};
+
+  async function genOrLoadKeyPair(){
+    ecdhKeyPair = await crypto.subtle.generateKey({name:"ECDH",namedCurve:"P-256"}, true, ["deriveKey","deriveBits"]);
+    const pubRaw = await crypto.subtle.exportKey("raw", ecdhKeyPair.publicKey);
+    myPublicBase64 = bufToBase64(pubRaw);
+    return;
+  }
+
+  async function importOtherPublic(rawBase64){
+    const raw = base64ToBuf(rawBase64);
+    return await crypto.subtle.importKey("raw", raw, {name:"ECDH", namedCurve:"P-256"}, true, []);
+  }
+
+  async function deriveSharedAESKey(otherPublicBase64, targetNick){
+    if(sharedKeyCache[targetNick]) return sharedKeyCache[targetNick];
+    const otherPub = await importOtherPublic(otherPublicBase64);
+    const derivedBits = await crypto.subtle.deriveBits({name:"ECDH", public: otherPub}, ecdhKeyPair.privateKey, 256);
+    const aesKey = await crypto.subtle.importKey("raw", derivedBits, {name:"AES-GCM"}, false, ["encrypt","decrypt"]);
+    sharedKeyCache[targetNick] = aesKey;
+    return aesKey;
+  }
+
+  async function encryptFor(targetNick, targetPubBase64, plaintext){
+    const key = await deriveSharedAESKey(targetPubBase64, targetNick);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const enc = new TextEncoder().encode(plaintext);
+    const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, key, enc);
+    return {ct: bufToBase64(ct), iv: bufToBase64(iv.buffer)};
+  }
+
+  async function decryptFrom(senderNick, senderPubBase64, ctBase64, ivBase64){
+    try{
+      const key = await deriveSharedAESKey(senderPubBase64, senderNick);
+      const ctBuf = base64ToBuf(ctBase64);
+      const ivBuf = base64ToBuf(ivBase64);
+      const plainBuf = await crypto.subtle.decrypt({name:"AES-GCM", iv: new Uint8Array(ivBuf)}, key, ctBuf);
+      return new TextDecoder().decode(plainBuf);
+    }catch(e){
+      console.warn("Falha ao descriptografar:", e);
+      return "[mensagem privada — não possível descriptografar]";
     }
+  }
 
-    let nick = localStorage.getItem('anon_nick') || randomNick();
-    localStorage.setItem('anon_nick', nick);
-    const nickDiv = document.getElementById('nick');
-    nickDiv.innerText = nick;
+  /********************************************************
+   * PRESENÇA (com public key) — mesma estrutura anterior
+   ********************************************************/
+  const room = "default";
+  const presenceRef = db.ref('rooms/' + room + '/presence');
 
-    // Editar nickname
-    nickDiv.addEventListener('click', () => {
-      const novo = prompt("Digite seu novo nickname:", nick);
-      if (novo && novo.trim()) {
-        nick = novo.trim();
+  let nick = localStorage.getItem('anon_nick') || null;
+  function randomNick(){
+    const animals = ["lobo","falcao","pantera","raposa","corvo","tigre","guerreiro","ninja","saturno","zeus","ares","odin","raio"];
+    return animals[Math.floor(Math.random()*animals.length)] + Math.floor(Math.random()*9000+1000);
+  }
+  if(!nick) { nick = randomNick(); localStorage.setItem('anon_nick', nick); }
+
+  const nickDiv = document.getElementById('nick');
+  nickDiv.innerText = nick;
+  nickDiv.addEventListener('click', async () => {
+    const novo = prompt("Digite seu novo nickname:", nick);
+    if(novo && novo.trim()){
+      await presenceRef.child(nick).remove().catch(()=>{});
+      nick = novo.trim();
+      localStorage.setItem('anon_nick', nick);
+      nickDiv.innerText = nick;
+      await publishPresence();
+    }
+  });
+
+  async function publishPresence(){
+    await presenceRef.child(nick).set({nick, pub: myPublicBase64, ts: Date.now()});
+    presenceRef.child(nick).onDisconnect().remove();
+  }
+
+  /********************************************************
+   * MENSAGENS: público e privado (mesma lógica)
+   ********************************************************/
+  const messagesRef = db.ref('rooms/' + room + '/messages');
+  const input = document.getElementById('texto');
+  const sendBtn = document.getElementById('send');
+  const messagesEl = document.getElementById('messages');
+
+  const usersListEl = document.getElementById('usersList');
+  const pmTabsEl = document.getElementById('pmTabs');
+  const pmConversations = {};
+
+  function openPM(target){
+    if(target === nick) return alert("Você não pode conversar privado consigo mesmo.");
+    if(pmConversations[target]) {
+      Array.from(pmTabsEl.children).forEach(c=>c.style.borderColor="transparent");
+      document.getElementById('pm-'+CSS.escape(target)).style.borderColor = "var(--accent-dark)";
+      return;
+    }
+    const btn = document.createElement('div');
+    btn.className = 'pm-tab';
+    btn.textContent = 'PM: ' + target;
+    btn.id = 'pm-'+target;
+    btn.addEventListener('click', ()=> {
+      input.value = `/msg ${target} `;
+      input.focus();
+      Array.from(pmTabsEl.children).forEach(c=>c.style.borderColor="transparent");
+      btn.style.borderColor = "var(--accent-dark)";
+    });
+    pmTabsEl.appendChild(btn);
+    pmConversations[target] = {btn};
+  }
+
+  messagesRef.limitToLast(500).on('child_added', async snapshot => {
+    const m = snapshot.val();
+    if(!m) return;
+    if(m.private){
+      if(m.to === nick || m.from === nick){
+        const otherNick = (m.from === nick) ? m.to : m.from;
+        const senderNick = m.from;
+        const senderPub = m.pub;
+        const text = await decryptFrom(senderNick, senderPub, m.ct, m.iv);
+        appendPrivateMessageLocal(m, text);
+      } else {
+        return;
+      }
+    } else {
+      appendPublicMessage(m);
+    }
+  });
+
+  function appendPublicMessage(m){
+    const div = document.createElement('div');
+    div.className = 'msg ' + (m.nick === nick ? 'me' : 'other');
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    if(document.body.getAttribute('data-theme')==='dark') meta.classList.add('dark');
+    meta.textContent = `[${new Date(m.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}] <${m.nick}>`;
+    meta.addEventListener('click', ()=> {
+      openPM(m.nick);
+      input.value = `/msg ${m.nick} `;
+      input.focus();
+    });
+    const body = document.createElement('div');
+    body.textContent = m.text;
+    div.appendChild(meta); div.appendChild(body);
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function appendPrivateMessageLocal(m, plaintext){
+    openPM((m.from === nick) ? m.to : m.from);
+    const div = document.createElement('div');
+    div.className = 'msg ' + (m.from === nick ? 'me' : 'other');
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    if(document.body.getAttribute('data-theme')==='dark') meta.classList.add('dark');
+    meta.textContent = `[PM ${new Date(m.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}] <${m.from}> -> <${m.to}>`;
+    meta.addEventListener('click', ()=> {
+      input.value = `/msg ${ (m.from===nick) ? m.to : m.from } `;
+      input.focus();
+    });
+    const body = document.createElement('div');
+    body.textContent = plaintext;
+    div.appendChild(meta); div.appendChild(body);
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  /********************************************************
+   * ENVIAR (mesma lógica)
+   ********************************************************/
+  sendBtn.addEventListener('click', send);
+  input.addEventListener('keydown', e=> { if(e.key==='Enter') send(); });
+
+  async function send(){
+    const text = input.value.trim();
+    if(!text) return;
+    if(text.startsWith('/nick ')){
+      const novo = text.slice(6).trim();
+      if(novo){
+        await presenceRef.child(nick).remove().catch(()=>{});
+        nick = novo;
         localStorage.setItem('anon_nick', nick);
         nickDiv.innerText = nick;
+        await publishPresence();
       }
-    });
-
-    // ===== CHAT =====
-    const room = "default";
-    const messagesRef = db.ref('rooms/' + room + '/messages');
-
-    messagesRef.limitToLast(200).on('child_added', snapshot => {
-      appendMessage(snapshot.val());
-    });
-
-    const input = document.getElementById('texto');
-    const sendBtn = document.getElementById('send');
-    let replyTo = null;
-
-    function send() {
-      const text = input.value.trim();
-      if (!text) return;
-      let finalText = text;
-      if (replyTo) {
-        finalText = `@${replyTo}: ${text}`;
-        replyTo = null;
-      }
-      messagesRef.push({ nick, text: finalText, ts: Date.now() });
       input.value = '';
+      return;
     }
+    if(text.startsWith('/msg ')){
+      const parts = text.split(' ');
+      if(parts.length < 3){ alert("Use /msg nick mensagem"); return; }
+      const target = parts[1];
+      const msgText = parts.slice(2).join(' ');
+      const snap = await presenceRef.child(target).once('value');
+      const obj = snap.val();
+      if(!obj || !obj.pub){ alert("Usuário não disponível para PM ou sem chave pública."); return; }
+      const targetPub = obj.pub;
+      const enc = await encryptFor(target, targetPub, msgText);
+      messagesRef.push({ private:true, to: target, from: nick, ct: enc.ct, iv: enc.iv, pub: myPublicBase64, ts: Date.now() });
+      appendPrivateMessageLocal({private:true, to: target, from: nick, ts: Date.now()}, msgText);
+      input.value = '';
+      return;
+    }
+    messagesRef.push({ nick, text, ts: Date.now() });
+    input.value = '';
+  }
 
-    sendBtn.addEventListener('click', send);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+  /********************************************************
+   * PRESENCE LISTENER (UI)
+   ********************************************************/
+  presenceRef.on('value', snapshot => {
+    const val = snapshot.val() || {};
+    renderUsersList(Object.values(val));
+  });
 
-    function appendMessage(m) {
-      const div = document.createElement('div');
-      div.className = 'msg ' + (m.nick === nick ? 'me' : 'other');
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = `${m.nick} • ${new Date(m.ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-      meta.addEventListener('click', () => {
-        replyTo = m.nick;
-        input.value = `@${m.nick}: `;
+  function renderUsersList(users){
+    usersListEl.innerHTML = '';
+    if(users.length===0){ usersListEl.textContent = 'nenhum usuário online'; return; }
+    users.sort((a,b)=> a.nick.localeCompare(b.nick));
+    users.forEach(u=>{
+      const item = document.createElement('div');
+      item.className = 'user';
+      item.textContent = u.nick + (u.nick===nick ? ' (você)' : '');
+      item.title = 'Clique para abrir PM';
+      item.addEventListener('click', ()=> {
+        if(u.nick === nick) return;
+        openPM(u.nick);
+        input.value = `/msg ${u.nick} `;
         input.focus();
       });
-      const body = document.createElement('div');
-      body.textContent = m.text;
-      div.appendChild(meta);
-      div.appendChild(body);
-      document.getElementById('messages').appendChild(div);
-      scrollBottom();
-    }
+      usersListEl.appendChild(item);
+    });
+  }
 
-    function scrollBottom() {
-      const el = document.getElementById('messages');
-      el.scrollTop = el.scrollHeight;
-    }
+  /********************************************************
+   * INICIALIZAÇÃO
+   ********************************************************/
+  async function init(){
+    await genOrLoadKeyPair();
+    await publishPresence();
+    window.addEventListener('beforeunload', ()=> { try{ presenceRef.child(nick).remove(); }catch(e){} });
+  }
+  init();
+
+  /********************************************************
+   * TEMA: persistência simples
+   ********************************************************/
+  const themeToggle = document.getElementById('themeToggle');
+  const storedTheme = localStorage.getItem('theme') || 'dark';
+  document.body.setAttribute('data-theme', storedTheme);
+  themeToggle.textContent = storedTheme === 'light' ? '🌙' : '☀️';
+
+  themeToggle.addEventListener('click', () => {
+    const cur = document.body.getAttribute('data-theme');
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    themeToggle.textContent = next === 'light' ? '🌙' : '☀️';
+  });
+
   </script>
 </body>
 </html>
